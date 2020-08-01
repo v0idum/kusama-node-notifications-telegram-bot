@@ -41,5 +41,9 @@ class SQLighter:
         with self.connection:
             return self.cursor.execute("SELECT user_id, validator FROM 'user_validators' ORDER BY validator").fetchall()
 
+    def delete_validator_by_user(self, user_id, address):
+        with self.connection:
+            return self.cursor.execute("DELETE FROM 'user_validators' WHERE user_id = ? AND validator = ?", (user_id, address))
+
     def close(self):
         self.connection.close()
