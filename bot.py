@@ -14,19 +14,15 @@ dp = Dispatcher(bot)
 
 db = SQLighter('db.db')
 
-keyboard = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-add_validator_btn = KeyboardButton(config.ADD_VALIDATOR)
-status_btn = KeyboardButton(config.STATUS)
-era_btn = KeyboardButton(config.ERA_PROCESS)
-donate_btn = KeyboardButton(config.DONATE)
-keyboard.add(add_validator_btn)
-keyboard.add(status_btn)
-keyboard.add(era_btn)
-keyboard.add(donate_btn)
-
 
 @dp.message_handler(filters.CommandStart())
 async def welcome(message: types.Message):
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+    add_validator_btn = KeyboardButton(config.ADD_VALIDATOR)
+    status_btn = KeyboardButton(config.STATUS)
+    era_btn = KeyboardButton(config.ERA_PROCESS)
+    donate_btn = KeyboardButton(config.DONATE)
+    keyboard.add(add_validator_btn, status_btn, era_btn, donate_btn)
     await message.answer(config.WELCOME_MESSAGE, reply_markup=keyboard)
 
 
