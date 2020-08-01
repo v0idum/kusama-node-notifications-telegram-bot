@@ -19,10 +19,11 @@ db = SQLighter('db.db')
 async def welcome(message: types.Message):
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     add_validator_btn = KeyboardButton(config.ADD_VALIDATOR)
+    remove_validator_btn = KeyboardButton(config.REMOVE_VALIDATOR)
     status_btn = KeyboardButton(config.STATUS)
     era_btn = KeyboardButton(config.ERA_PROCESS)
     donate_btn = KeyboardButton(config.DONATE)
-    keyboard.add(add_validator_btn, status_btn, era_btn, donate_btn)
+    keyboard.add(add_validator_btn, remove_validator_btn, status_btn, era_btn, donate_btn)
     await message.answer(config.WELCOME_MESSAGE, reply_markup=keyboard)
 
 

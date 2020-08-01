@@ -8,6 +8,7 @@ STATUS_MESSAGE = '''{}
 🔒Reserved Balance: {}
 📈KSM: 💲{:.2f}'''
 ADD_VALIDATOR = '➕Add Validator'
+REMOVE_VALIDATOR = '❌Remove Validator'
 STATUS = 'ℹ️Status'
 ERA_PROCESS = '⏳Era'
 DONATE = '💚Donate'
