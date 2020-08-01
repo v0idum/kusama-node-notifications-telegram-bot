@@ -6,6 +6,9 @@ import asyncio
 from sqlighter import SQLighter
 from aiogram import Bot, Dispatcher, executor, types, filters
 from aiogram.types.reply_keyboard import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+from utils import trim_address
 
 logging.basicConfig(level=logging.INFO)
 
@@ -30,6 +33,22 @@ async def welcome(message: types.Message):
 @dp.message_handler(filters.Text(config.ADD_VALIDATOR))
 async def add_validator_handler(message: types.Message):
     await message.answer('Enter a Validator account address:')
+
+
+@dp.message_handler(text=config.REMOVE_VALIDATOR)
+async def send_validator_removing_kb(message: types.Message):
+    validators = db.get_validators_by_user(message.from_user.id)
+    inline_kb = InlineKeyboardMarkup()
+    buttons = (InlineKeyboardButton(trim_address(*address), callback_data=address[0]) for address in validators)
+    inline_kb.add(*buttons)
+    await message.answer('Tap the address you want to remove:', reply_markup=inline_kb)
+
+
+@dp.callback_query_handler()
+async def remove_selected_validator(query: types.CallbackQuery):
+    db.delete_validator_by_user(query.from_user.id, query.data)
+    await query.answer('Success')
+    await query.message.edit_text('Removed.')
 
 
 @dp.message_handler(filters.Text([config.STATUS]))
