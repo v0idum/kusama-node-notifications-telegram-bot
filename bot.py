@@ -29,6 +29,11 @@ def home_kb():
     return keyboard
 
 
+@dp.message_handler(lambda message: message.from_user.id in config.ADMINS, commands='users')
+async def get_users(message: types.Message):
+    await message.answer(db.get_users())
+
+
 @dp.message_handler(filters.CommandStart())
 async def welcome(message: types.Message):
     await message.answer(config.WELCOME_MESSAGE, reply_markup=home_kb())
