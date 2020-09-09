@@ -6,7 +6,7 @@ STATUS_MESSAGE = '''{}
 💰Total balance: {}
 💸Free Balance: {}
 🔒Reserved Balance: {}
-📈KSM: 💲{:.2f}'''
+📈KSM: 💲{}'''
 
 ADD_VALIDATOR = '➕Add Validator'
 REMOVE_VALIDATOR = '❌Remove Validator'
