@@ -47,10 +47,14 @@ async def add_validator_handler(message: types.Message):
 @dp.message_handler(text=config.REMOVE_VALIDATOR)
 async def send_validator_removing_kb(message: types.Message):
     validators = db.get_validators_by_user(message.from_user.id)
-    inline_kb = InlineKeyboardMarkup()
-    buttons = (InlineKeyboardButton(trim_address(*address), callback_data=address[0]) for address in validators)
-    inline_kb.add(*buttons)
-    await message.answer('Tap the address you want to remove:', reply_markup=inline_kb)
+    response = 'You have no validators to remove!'
+    markup = None
+    if validators:
+        markup = InlineKeyboardMarkup()
+        buttons = (InlineKeyboardButton(trim_address(*address), callback_data=address[0]) for address in validators)
+        markup.add(*buttons)
+        response = 'Tap the address you want to remove:'
+    await message.answer(response, reply_markup=markup)
 
 
 @dp.callback_query_handler()
