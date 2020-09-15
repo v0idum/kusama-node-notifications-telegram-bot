@@ -24,7 +24,6 @@ def get_era_process():
     log.info('ERA:')
     log.info(res.text)
     metadata = res.json()
-    log.info(metadata)
     return int(metadata['data']['eraProcess'])
 
 
@@ -33,7 +32,6 @@ def get_ksm_stats():
     log.info('KSM stats:')
     log.info(res.text)
     res_json = res.json()
-    log.info(res_json)
     ksm_info = res_json['data']['detail']['KSM']
 
     total = format_balance(ksm_info['total_issuance'])
@@ -53,7 +51,6 @@ def get_ksm_stats():
 #     log.info('KSM price:')
 #     log.info(res.text)
 #     res_json = res.json()
-#     log.info(res_json)
 #     token_info = res_json['kusama']
 #     usd_price = token_info['usd']
 #     usd_24h_change = token_info['usd_24h_change']
