@@ -23,9 +23,9 @@ def home_kb():
     add_validator_btn = KeyboardButton(config.ADD_VALIDATOR)
     remove_validator_btn = KeyboardButton(config.REMOVE_VALIDATOR)
     status_btn = KeyboardButton(config.STATUS)
-    era_btn = KeyboardButton(config.ERA_PROCESS)
+    stats_btn = KeyboardButton(config.STATS)
     donate_btn = KeyboardButton(config.DONATE)
-    keyboard.add(add_validator_btn, remove_validator_btn, status_btn, era_btn, donate_btn)
+    keyboard.add(add_validator_btn, remove_validator_btn, status_btn, stats_btn, donate_btn)
     return keyboard
 
 
@@ -71,9 +71,9 @@ async def get_validators_status(message: types.Message):
         await message.answer(kusama_explorer.get_account_info(*validator), reply_markup=home_kb())
 
 
-@dp.message_handler(filters.Text([config.ERA_PROCESS]))
-async def get_era_process(message: types.Message):
-    await message.answer(f'🔄Era: {kusama_explorer.get_era_process()}/{config.ERA}', reply_markup=home_kb())
+@dp.message_handler(text=config.STATS)
+async def get_ksm_stats(message: types.Message):
+    await message.answer(kusama_explorer.get_ksm_stats(), reply_markup=home_kb())
 
 
 @dp.message_handler(filters.Text([config.DONATE]))

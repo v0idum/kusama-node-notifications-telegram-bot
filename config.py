@@ -6,12 +6,19 @@ STATUS_MESSAGE = '''{}
 💰Total balance: {}
 💸Free Balance: {}
 🔒Reserved Balance: {}
-📈KSM: 💲{}'''
+'''
+
+KSM_STATS = '''🏦Total issuance: {}
+💸Transferrable: {}
+🔐Locked: {}
+🔄Era: {}
+📈KSM: 💲{} ({})
+'''
 
 ADD_VALIDATOR = '➕Add Validator'
 REMOVE_VALIDATOR = '❌Remove Validator'
 STATUS = 'ℹ️Status'
-ERA_PROCESS = '⏳Era'
+STATS = '📊Stats'
 DONATE = '💚Donate'
 
 ADMINS = []  # Add admin ids here
