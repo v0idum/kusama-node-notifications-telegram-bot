@@ -1,14 +1,14 @@
 import requests
 import config
 import logging
+import json
 
-from utils import format_balance
+from utils import format_balance, get_index
 
 API_URL_ROOT = 'https://explorer-31.polkascan.io/kusama/api/v1/account/'
 ERA_API_URL = 'https://kusama.subscan.io/api/scan/metadata'
 KSM_PRICE_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=kusama&vs_currencies=usd&include_24hr_change=true'
 KSM_STATS_URL = 'https://kusama.subscan.io/api/scan/token'
-
 
 log = logging.getLogger(__name__)
 
@@ -28,11 +28,15 @@ def get_era_process():
 
 
 def get_ksm_stats():
-    res = requests.post(KSM_STATS_URL)
-    log.info('KSM stats:')
-    log.info(res.text)
-    res_json = res.json()
-    ksm_info = res_json['data']['detail']['KSM']
+    text_json = requests.post(KSM_STATS_URL).text
+    if text_json.count('{') == 4:
+        text_json = json.loads(text_json)
+    else:
+        last_brace_index = get_index(text_json, '{', 5)
+        text_json = json.loads(text_json[:last_brace_index])
+        log.info(text_json)
+
+    ksm_info = text_json['data']['detail']['KSM']
 
     total = format_balance(ksm_info['total_issuance'])
     available = format_balance(ksm_info['available_balance'])
