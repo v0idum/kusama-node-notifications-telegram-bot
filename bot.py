@@ -1,3 +1,5 @@
+from aiogram.utils.exceptions import BotBlocked
+
 import config
 import logging
 import kusama_explorer
@@ -105,7 +107,10 @@ async def notify_users():
         if address != temp_address:
             temp_address = address
             validator_info = kusama_explorer.get_account_info(temp_address)
-        await bot.send_message(user_id, validator_info)
+        try:
+            await bot.send_message(user_id, validator_info)
+        except BotBlocked:
+            db.delete_user(user_id)
         await asyncio.sleep(0.04)
 
 
