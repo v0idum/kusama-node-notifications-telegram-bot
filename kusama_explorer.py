@@ -14,27 +14,39 @@ log = logging.getLogger(__name__)
 
 
 def get_account_json(address):
-    res = requests.get(API_URL_ROOT + address)
-    account_info = res.json()
-    return account_info['data']['attributes']
+    try:
+        res = requests.get(API_URL_ROOT + address, timeout=10)
+        res.close()
+        account_info = res.json()
+        return account_info['data']['attributes']
+    except requests.exceptions.ConnectionError as e:
+        print(e)
 
 
 def get_era_process():
-    res = requests.post(ERA_API_URL)
-    log.info('ERA:')
-    log.info(res.text)
-    metadata = res.json()
-    return int(metadata['data']['eraProcess'])
+    try:
+        res = requests.post(ERA_API_URL, timeout=10)
+        res.close()
+        metadata = res.json()
+        return int(metadata['data']['eraProcess'])
+    except requests.exceptions.ConnectionError as e:
+        print(e)
 
 
 def get_ksm_stats():
-    text_json = requests.post(KSM_STATS_URL).text
+    text_json = ''
+    try:
+        res = requests.post(KSM_STATS_URL, timeout=10)
+        res.close()
+        text_json = res.text
+    except requests.exceptions.ConnectionError as e:
+        print(e)
+
     if text_json.count('{') == 4:
         text_json = json.loads(text_json)
     else:
         last_brace_index = get_index(text_json, '{', 5)
         text_json = json.loads(text_json[:last_brace_index])
-        log.info(text_json)
 
     ksm_info = text_json['data']['detail']['KSM']
 
@@ -48,17 +60,6 @@ def get_ksm_stats():
     price_change = f'{float(ksm_info["price_change"]):.2%}'
 
     return config.KSM_STATS.format(total, available, locked, era, price, price_change)
-
-
-# def get_ksm_price():
-#     res = requests.get(KSM_PRICE_URL)
-#     log.info('KSM price:')
-#     log.info(res.text)
-#     res_json = res.json()
-#     token_info = res_json['kusama']
-#     usd_price = token_info['usd']
-#     usd_24h_change = token_info['usd_24h_change']
-#     return '{} ({:.2f}%)'.format(usd_price, usd_24h_change)
 
 
 def get_account_info(address):
