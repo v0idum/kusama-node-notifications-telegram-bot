@@ -1,4 +1,5 @@
-import requests
+import aiohttp
+import asyncio
 import config
 import logging
 import json
@@ -7,40 +8,57 @@ from utils import format_balance, get_index
 
 API_URL_ROOT = 'https://explorer-31.polkascan.io/kusama/api/v1/account/'
 ERA_API_URL = 'https://kusama.subscan.io/api/scan/metadata'
-KSM_PRICE_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=kusama&vs_currencies=usd&include_24hr_change=true'
+TOKEN_PRICE_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=polkadot&vs_currencies=usd&include_24hr_change=true'
 KSM_STATS_URL = 'https://kusama.subscan.io/api/scan/token'
 
 log = logging.getLogger(__name__)
 
 
-def get_account_json(address):
-    try:
-        res = requests.get(API_URL_ROOT + address, timeout=10)
-        res.close()
-        account_info = res.json()
+async def get_account_json(session: aiohttp.ClientSession, address: str) -> dict:
+    async with session.get(API_URL_ROOT + address) as response:
+        account_info = await response.json()
         return account_info['data']['attributes']
-    except requests.exceptions.ConnectionError as e:
-        print(e)
 
 
-def get_era_process():
-    try:
-        res = requests.post(ERA_API_URL, timeout=10)
-        res.close()
-        metadata = res.json()
-        return int(metadata['data']['eraProcess'])
-    except requests.exceptions.ConnectionError as e:
-        print(e)
+async def get_era_process(session: aiohttp.ClientSession = None) -> int:
+    close_after_finish = False
+    if session is None:
+        session = aiohttp.ClientSession()
+        close_after_finish = True
+
+    async with session.post(ERA_API_URL) as response:
+        metadata = await response.json()
+
+    if close_after_finish:
+        await session.close()
+
+    return int(metadata['data']['eraProcess'])
 
 
-def get_ksm_stats():
-    text_json = ''
-    try:
-        res = requests.post(KSM_STATS_URL, timeout=10)
-        res.close()
-        text_json = res.text
-    except requests.exceptions.ConnectionError as e:
-        print(e)
+async def get_polkadot_price(session: aiohttp.ClientSession) -> tuple:
+    async with session.get(TOKEN_PRICE_URL) as response:
+        res = await response.json()
+        polkadot = res['polkadot']
+        return polkadot['usd'], f"{polkadot['usd_24h_change']:.2f}%"
+
+
+async def ksm_stats(session) -> str:
+    async with session.post(KSM_STATS_URL) as response:
+        text_json = await response.text()
+        return text_json
+
+
+async def get_stats() -> str:
+    session = aiohttp.ClientSession()
+
+    results = await asyncio.gather(
+        ksm_stats(session),
+        get_era_process(session),
+        get_polkadot_price(session),
+    )
+    await session.close()
+
+    text_json = results[0]
 
     if text_json.count('{') == 4:
         text_json = json.loads(text_json)
@@ -54,16 +72,18 @@ def get_ksm_stats():
     available = format_balance(ksm_info['available_balance'])
     locked = format_balance(ksm_info['locked_balance'])
 
-    era = f'{get_era_process()}/{config.ERA}'
+    era = f'{results[1]}/{config.ERA}'
 
-    price = f'{float(ksm_info["price"]):.2f}'
-    price_change = f'{float(ksm_info["price_change"]):.2%}'
+    ksm_price = f'{float(ksm_info["price"]):.2f}'
+    ksm_price_change = f'{float(ksm_info["price_change"]):.2%}'
 
-    return config.KSM_STATS.format(total, available, locked, era, price, price_change)
+    dot_price, dot_price_change = results[2]
+
+    return config.KSM_STATS.format(total, available, locked, era, ksm_price, ksm_price_change, dot_price, dot_price_change)
 
 
-def get_account_info(address):
-    validator_info = get_account_json(address)
+async def get_account_info(session: aiohttp.ClientSession, address: str) -> str:
+    validator_info = await get_account_json(session, address)
     account = address[:4] + '...' + address[-4:]
     if validator_info['has_identity']:
         account = f"📋Display name: {validator_info['identity_display']}\n💠Address: {account}"

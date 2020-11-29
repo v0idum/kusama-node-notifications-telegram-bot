@@ -4,6 +4,7 @@ import config
 import logging
 import kusama_explorer
 import asyncio
+import aiohttp
 
 from sqlighter import SQLighter
 from aiogram import Bot, Dispatcher, executor, types, filters
@@ -69,13 +70,15 @@ async def remove_selected_validator(query: types.CallbackQuery):
 @dp.message_handler(filters.Text([config.STATUS]))
 async def get_validators_status(message: types.Message):
     validators = db.get_validators_by_user(message.from_user.id)
+    session = aiohttp.ClientSession()
     for validator in validators:
-        await message.answer(kusama_explorer.get_account_info(*validator), reply_markup=home_kb())
+        await message.answer(await kusama_explorer.get_account_info(session, *validator), reply_markup=home_kb())
+    await session.close()
 
 
 @dp.message_handler(text=config.STATS)
 async def get_ksm_stats(message: types.Message):
-    await message.answer(kusama_explorer.get_ksm_stats(), reply_markup=home_kb())
+    await message.answer(await kusama_explorer.get_stats(), reply_markup=home_kb())
 
 
 @dp.message_handler(filters.Text([config.DONATE]))
@@ -87,40 +90,55 @@ async def process_donate(message: types.Message):
 @dp.message_handler()
 async def validator_address_handler(message: types.Message):
     response = '️️✔️Validator added successfully!'
+    session = aiohttp.ClientSession()
     try:
-        validator_info = kusama_explorer.get_account_json(message.text)
-        db.add_validator_to_user(message.from_user.id, validator_info['address'])
-        logging.log(logging.INFO,
-                    f'{message.from_user.id} {message.from_user.username} added {validator_info["address"]}')
+        validator_info = await kusama_explorer.get_account_json(session, message.text)
+        res = db.add_validator_to_user(message.from_user.id, validator_info['address'])
+        if not res:
+            response = 'This validator has already been added!'
+        else:
+            logging.log(logging.INFO,
+                        f'{message.from_user.id} {message.from_user.username} added {validator_info["address"]}')
+
     except KeyError:
         response = '❌Invalid address! Try again.'
     await message.answer(response, reply_markup=home_kb())
+    await session.close()
 
 
 async def notify_users():
+    logging.info('Notifying users')
+    session = aiohttp.ClientSession()
     validators = db.get_user_validators()
     first = validators[0]
     temp_address = first[1]
-    validator_info = kusama_explorer.get_account_info(temp_address)
+    validator_info = await kusama_explorer.get_account_info(session, temp_address)
+    users = set()
     for validator in validators:
         user_id, address = validator
+        users.add(user_id)
         if address != temp_address:
             temp_address = address
-            validator_info = kusama_explorer.get_account_info(temp_address)
+            validator_info = await kusama_explorer.get_account_info(session, temp_address)
         try:
             await bot.send_message(user_id, validator_info)
         except BotBlocked:
             db.delete_user(user_id)
         await asyncio.sleep(0.04)
+    await session.close()
+
+    stats = await kusama_explorer.get_stats()
+    for user in users:
+        await bot.send_message(user, stats)
 
 
 async def monitor_era_progress():
-    era_process = kusama_explorer.get_era_process()
+    era_process = await kusama_explorer.get_era_process()
     pause = (config.ERA - era_process) * config.BLOCK_TIME
     while True:
         logging.log(logging.INFO, f'Sleeping on {pause} sec, era {era_process}')
         await asyncio.sleep(pause)
-        era_current = kusama_explorer.get_era_process()
+        era_current = await kusama_explorer.get_era_process()
         pause = (config.ERA - era_current) * config.BLOCK_TIME
         if era_process > era_current:
             await notify_users()
