@@ -21,6 +21,7 @@ KSM_STATS = '''🏦Total issuance: {}
 🔐Locked: {}
 🔄Era: {}
 📈KSM: 💲{} ({})
+📈DOT: 💲{} ({})
 '''
 
 ADD_VALIDATOR = '➕Add Validator'
