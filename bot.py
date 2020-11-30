@@ -116,14 +116,16 @@ async def notify_users():
     users = set()
     for validator in validators:
         user_id, address = validator
-        users.add(user_id)
         if address != temp_address:
             temp_address = address
             validator_info = await kusama_explorer.get_account_info(session, temp_address)
         try:
             await bot.send_message(user_id, validator_info)
-        except BotBlocked:
+            users.add(user_id)
+        except BotBlocked as e:
+            logging.error(f'While sending validator info to user {user_id}', exc_info=e)
             db.delete_user(user_id)
+            db.delete_validator_by_user(user_id, address)
         await asyncio.sleep(0.04)
     await session.close()
 
