@@ -119,6 +119,8 @@ async def notify_users():
         if address != temp_address:
             temp_address = address
             validator_info = await kusama_explorer.get_account_info(session, temp_address)
+        if not validator_info:
+            continue
         try:
             await bot.send_message(user_id, validator_info)
             users.add(user_id)

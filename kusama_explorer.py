@@ -16,8 +16,13 @@ log = logging.getLogger(__name__)
 
 async def get_account_json(session: aiohttp.ClientSession, address: str) -> dict:
     async with session.get(API_URL_ROOT + address) as response:
-        account_info = await response.json()
-        return account_info['data']['attributes']
+        try:
+            account_info = await response.json()
+            return account_info['data']['attributes']
+        except KeyError as e:
+            log.error(f'Key error during processing address {address}', exc_info=e)
+            log.debug(account_info)
+            return
 
 
 async def get_era_process(session: aiohttp.ClientSession = None) -> int:
@@ -82,8 +87,10 @@ async def get_stats() -> str:
     return config.KSM_STATS.format(total, available, locked, era, ksm_price, ksm_price_change, dot_price, dot_price_change)
 
 
-async def get_account_info(session: aiohttp.ClientSession, address: str) -> str:
+async def get_account_info(session: aiohttp.ClientSession, address: str):
     validator_info = await get_account_json(session, address)
+    if not validator_info:
+        return
     account = address[:4] + '...' + address[-4:]
     if validator_info['has_identity']:
         account = f"📋Display name: {validator_info['identity_display']}\n💠Address: {account}"
