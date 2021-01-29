@@ -10,8 +10,15 @@ API_URL_ROOT = 'https://explorer-31.polkascan.io/kusama/api/v1/account/'
 ERA_API_URL = 'https://kusama.subscan.io/api/scan/metadata'
 TOKEN_PRICE_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=polkadot&vs_currencies=usd&include_24hr_change=true'
 KSM_STATS_URL = 'https://kusama.subscan.io/api/scan/token'
+VALIDATOR_RANK_URL = 'https://kusama.w3f.community/candidate/'
 
 log = logging.getLogger(__name__)
+
+
+async def get_validator_rank(session: aiohttp.ClientSession, address: str) -> int:
+    async with session.get(VALIDATOR_RANK_URL + address) as response:
+        details = await response.json()
+        return details['rank']
 
 
 async def get_account_json(session: aiohttp.ClientSession, address: str) -> dict:
@@ -84,11 +91,18 @@ async def get_stats() -> str:
 
     dot_price, dot_price_change = results[2]
 
-    return config.KSM_STATS.format(total, available, locked, era, ksm_price, ksm_price_change, dot_price, dot_price_change)
+    return config.KSM_STATS.format(total, available, locked, era, ksm_price, ksm_price_change, dot_price,
+                                   dot_price_change)
 
 
 async def get_account_info(session: aiohttp.ClientSession, address: str):
-    validator_info = await get_account_json(session, address)
+    results = await asyncio.gather(
+        get_account_json(session, address),
+        get_validator_rank(session, address)
+    )
+    validator_info = results[0]
+    validator_rank = results[1]
+
     if not validator_info:
         return
     account = address[:4] + '...' + address[-4:]
@@ -98,4 +112,4 @@ async def get_account_info(session: aiohttp.ClientSession, address: str):
     balance_total = format_balance(validator_info['balance_total'], 2)
     balance_free = format_balance(validator_info['balance_free'], 2)
     balance_reserved = format_balance(validator_info['balance_reserved'], 2)
-    return config.STATUS_MESSAGE.format(account, state, balance_total, balance_free, balance_reserved)
+    return config.STATUS_MESSAGE.format(account, validator_rank, state, balance_total, balance_free, balance_reserved)

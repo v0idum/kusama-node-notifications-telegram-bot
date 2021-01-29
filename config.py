@@ -10,6 +10,7 @@ DONATE_ADDRESS = os.getenv('DONATE_ADDRESS')
 WELCOME_MESSAGE = 'Hello! I can show you details about the state of any Kusama validator. Just send me the validator address.'
 
 STATUS_MESSAGE = '''{}
+⭐Rank: {}
 📜Current validator state: {}
 💰Total balance: {}
 💸Free Balance: {}
@@ -17,7 +18,7 @@ STATUS_MESSAGE = '''{}
 '''
 
 KSM_STATS = '''🏦Total issuance: {}
-💸Transferrable: {}
+💸Transferable: {}
 🔐Locked: {}
 🔄Era: {}
 📈KSM: 💲{} ({})
