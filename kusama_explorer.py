@@ -27,8 +27,7 @@ async def get_account_json(session: aiohttp.ClientSession, address: str) -> dict
             account_info = await response.json()
             return account_info['data']['attributes']
         except KeyError as e:
-            log.error(f'Key error during processing address {address}', exc_info=e)
-            log.debug(account_info)
+            log.warning(f'Key error during processing address {address}')
             return
 
 

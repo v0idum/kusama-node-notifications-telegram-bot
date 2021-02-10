@@ -91,8 +91,10 @@ async def process_donate(message: types.Message):
 async def validator_address_handler(message: types.Message):
     response = '️️✔️Validator added successfully!'
     session = aiohttp.ClientSession()
-    try:
-        validator_info = await kusama_explorer.get_account_json(session, message.text)
+    validator_info = await kusama_explorer.get_account_json(session, message.text)
+    if not validator_info:
+        response = '❌Invalid address! Try again.'
+    else:
         res = db.add_validator_to_user(message.from_user.id, validator_info['address'])
         if not res:
             response = 'This validator has already been added!'
@@ -100,8 +102,6 @@ async def validator_address_handler(message: types.Message):
             logging.log(logging.INFO,
                         f'{message.from_user.id} {message.from_user.username} added {validator_info["address"]}')
 
-    except KeyError:
-        response = '❌Invalid address! Try again.'
     await message.answer(response, reply_markup=home_kb())
     await session.close()
 
