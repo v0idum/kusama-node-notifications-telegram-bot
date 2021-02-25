@@ -1,9 +1,11 @@
-import aiohttp
 import asyncio
-import config
-import logging
 import json
+import logging
 
+import aiohttp
+from aiohttp import ContentTypeError
+
+import config
 from utils import format_balance, get_index
 
 API_URL_ROOT = 'https://explorer-31.polkascan.io/api/v1/kusama/account/'
@@ -15,10 +17,13 @@ VALIDATOR_RANK_URL = 'https://kusama.w3f.community/candidate/'
 log = logging.getLogger(__name__)
 
 
-async def get_validator_rank(session: aiohttp.ClientSession, address: str) -> int:
+async def get_validator_rank(session: aiohttp.ClientSession, address: str):
     async with session.get(VALIDATOR_RANK_URL + address) as response:
-        details = await response.json()
-        return details['rank']
+        try:
+            details = await response.json()
+            return details['rank']
+        except ContentTypeError:
+            return '-'
 
 
 async def get_account_json(session: aiohttp.ClientSession, address: str):

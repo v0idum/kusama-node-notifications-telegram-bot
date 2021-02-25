@@ -22,7 +22,8 @@ class SQLighter:
 
     def has_user_validator(self, user_id, validator_address):
         with self.connection:
-            result = self.cursor.execute("SELECT * FROM 'user_validators' WHERE user_id = ? AND validator = ?", (user_id, validator_address)).fetchall()
+            result = self.cursor.execute("SELECT * FROM 'user_validators' WHERE user_id = ? AND validator = ?",
+                                         (user_id, validator_address)).fetchall()
             return bool(len(result))
 
     def add_validator_to_user(self, user_id, validator_address):
@@ -31,11 +32,13 @@ class SQLighter:
         if self.has_user_validator(user_id, validator_address):
             return False
         with self.connection:
-            return self.cursor.execute("INSERT INTO 'user_validators' ('user_id', 'validator') VALUES (?, ?)", (user_id, validator_address))
+            return self.cursor.execute("INSERT INTO 'user_validators' ('user_id', 'validator') VALUES (?, ?)",
+                                       (user_id, validator_address))
 
     def get_validators_by_user(self, user_id):
         with self.connection:
-            return self.cursor.execute("SELECT validator FROM 'user_validators' WHERE user_id = ?", (user_id,)).fetchall()
+            return self.cursor.execute("SELECT validator FROM 'user_validators' WHERE user_id = ?",
+                                       (user_id,)).fetchall()
 
     def get_user_validators(self):
         with self.connection:
@@ -43,7 +46,8 @@ class SQLighter:
 
     def delete_validator_by_user(self, user_id, address):
         with self.connection:
-            return self.cursor.execute("DELETE FROM 'user_validators' WHERE user_id = ? AND validator = ?", (user_id, address))
+            return self.cursor.execute("DELETE FROM 'user_validators' WHERE user_id = ? AND validator = ?",
+                                       (user_id, address))
 
     def delete_user(self, user_id):
         with self.connection:

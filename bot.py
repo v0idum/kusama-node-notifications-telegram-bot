@@ -1,16 +1,15 @@
+import asyncio
+import logging
+
+import aiohttp
+from aiogram import Bot, Dispatcher, executor, types, filters
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types.reply_keyboard import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.utils.exceptions import BotBlocked
 
 import config
-import logging
 import kusama_explorer
-import asyncio
-import aiohttp
-
 from sqlighter import SQLighter
-from aiogram import Bot, Dispatcher, executor, types, filters
-from aiogram.types.reply_keyboard import ReplyKeyboardMarkup, KeyboardButton
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
 from utils import trim_address
 
 logging.basicConfig(level=logging.INFO, filename='logs.log')
