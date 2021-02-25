@@ -6,7 +6,7 @@ import json
 
 from utils import format_balance, get_index
 
-API_URL_ROOT = 'https://explorer-31.polkascan.io/kusama/api/v1/account/'
+API_URL_ROOT = 'https://explorer-31.polkascan.io/api/v1/kusama/account/'
 ERA_API_URL = 'https://kusama.subscan.io/api/scan/metadata'
 TOKEN_PRICE_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=polkadot&vs_currencies=usd&include_24hr_change=true'
 KSM_STATS_URL = 'https://kusama.subscan.io/api/scan/token'
@@ -21,12 +21,12 @@ async def get_validator_rank(session: aiohttp.ClientSession, address: str) -> in
         return details['rank']
 
 
-async def get_account_json(session: aiohttp.ClientSession, address: str) -> dict:
+async def get_account_json(session: aiohttp.ClientSession, address: str):
     async with session.get(API_URL_ROOT + address) as response:
         try:
             account_info = await response.json()
             return account_info['data']['attributes']
-        except KeyError as e:
+        except KeyError:
             log.warning(f'Key error during processing address {address}')
             return
 
