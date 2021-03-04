@@ -69,7 +69,7 @@ async def remove_selected_validator(query: types.CallbackQuery):
 @dp.message_handler(filters.Text([config.STATUS]))
 async def get_validators_status(message: types.Message):
     validators = db.get_validators_by_user(message.from_user.id)
-    session = aiohttp.ClientSession()
+    session = aiohttp.ClientSession(trust_env=True)
     for validator in validators:
         await message.answer(await kusama_explorer.get_account_info(session, *validator), reply_markup=home_kb())
     await session.close()
@@ -89,7 +89,7 @@ async def process_donate(message: types.Message):
 @dp.message_handler()
 async def validator_address_handler(message: types.Message):
     response = '️️✔️Validator added successfully!'
-    session = aiohttp.ClientSession()
+    session = aiohttp.ClientSession(trust_env=True)
     validator_info = await kusama_explorer.get_account_json(session, message.text)
     if not validator_info:
         response = '❌Invalid address! Try again.'
@@ -107,7 +107,7 @@ async def validator_address_handler(message: types.Message):
 
 async def notify_users():
     logging.info('Notifying users')
-    session = aiohttp.ClientSession()
+    session = aiohttp.ClientSession(trust_env=True)
     validators = db.get_user_validators()
     first = validators[0]
     temp_address = first[1]
