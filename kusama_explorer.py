@@ -8,11 +8,10 @@ from aiohttp import ContentTypeError
 import config
 from utils import format_balance, get_index
 
-API_URL_ROOT = 'https://explorer-31.polkascan.io/api/v1/kusama/account/'
-ERA_API_URL = 'https://kusama.subscan.io/api/scan/metadata'
-TOKEN_PRICE_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=polkadot&vs_currencies=usd&include_24hr_change=true'
-KSM_STATS_URL = 'https://kusama.subscan.io/api/scan/token'
-VALIDATOR_RANK_URL = 'https://kusama.w3f.community/candidate/'
+API_URL_ROOT = 'https://explorer-31.polkascan.io/api/v1/polkadot/account/'
+ERA_API_URL = 'https://polkadot.subscan.io/api/scan/metadata'
+KSM_STATS_URL = 'https://polkadot.subscan.io/api/scan/token'
+VALIDATOR_RANK_URL = 'https://polkadot.w3f.community/candidate/'
 
 log = logging.getLogger(__name__)
 
@@ -51,14 +50,7 @@ async def get_era_process(session: aiohttp.ClientSession = None) -> int:
     return int(metadata['data']['eraProcess'])
 
 
-async def get_polkadot_price(session: aiohttp.ClientSession) -> tuple:
-    async with session.get(TOKEN_PRICE_URL) as response:
-        res = await response.json()
-        polkadot = res['polkadot']
-        return polkadot['usd'], f"{polkadot['usd_24h_change']:.2f}%"
-
-
-async def ksm_stats(session) -> str:
+async def polkadot_stats(session) -> str:
     async with session.post(KSM_STATS_URL) as response:
         text_json = await response.text()
         return text_json
@@ -68,9 +60,8 @@ async def get_stats() -> str:
     session = aiohttp.ClientSession()
 
     results = await asyncio.gather(
-        ksm_stats(session),
-        get_era_process(session),
-        get_polkadot_price(session),
+        polkadot_stats(session),
+        get_era_process(session)
     )
     await session.close()
 
@@ -82,21 +73,18 @@ async def get_stats() -> str:
         last_brace_index = get_index(text_json, '{', 5)
         text_json = json.loads(text_json[:last_brace_index])
 
-    ksm_info = text_json['data']['detail']['KSM']
+    dot_info = text_json['data']['detail']['DOT']
 
-    total = format_balance(ksm_info['total_issuance'])
-    available = format_balance(ksm_info['available_balance'])
-    locked = format_balance(ksm_info['locked_balance'])
+    total = format_balance(dot_info['total_issuance'])
+    available = format_balance(dot_info['available_balance'])
+    locked = format_balance(dot_info['locked_balance'])
 
     era = f'{results[1]}/{config.ERA}'
 
-    ksm_price = f'{float(ksm_info["price"]):.2f}'
-    ksm_price_change = f'{float(ksm_info["price_change"]):.2%}'
+    dot_price = f'{float(dot_info["price"]):.2f}'
+    dot_price_change = f'{float(dot_info["price_change"]):.2%}'
 
-    dot_price, dot_price_change = results[2]
-
-    return config.KSM_STATS.format(total, available, locked, era, ksm_price, ksm_price_change, dot_price,
-                                   dot_price_change)
+    return config.DOT_STATS.format(total, available, locked, era, dot_price, dot_price_change)
 
 
 async def get_account_info(session: aiohttp.ClientSession, address: str):
@@ -117,3 +105,14 @@ async def get_account_info(session: aiohttp.ClientSession, address: str):
     balance_free = format_balance(validator_info['balance_free'], 2)
     balance_reserved = format_balance(validator_info['balance_reserved'], 2)
     return config.STATUS_MESSAGE.format(account, validator_rank, state, balance_total, balance_free, balance_reserved)
+
+
+async def main():
+    session = aiohttp.ClientSession()
+    for i in range(150):
+        # print(await get_validator_rank(session, '14uLDf9HaQAu9FM6qpBNv57CJKjg1rcuMcZz8aAxQ9qvM45v'))
+        print(await get_stats())
+    await session.close()
+
+if __name__ == '__main__':
+    asyncio.run(main())

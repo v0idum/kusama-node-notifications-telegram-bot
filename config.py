@@ -8,7 +8,7 @@ BOT_TOKEN = os.getenv('BOT_TOKEN')
 ADMINS = os.getenv('ADMINS').split(' ')
 DONATE_ADDRESS = os.getenv('DONATE_ADDRESS')
 
-WELCOME_MESSAGE = 'Hello! I can show you details about the state of any Kusama validator. Just send me the validator address.'
+WELCOME_MESSAGE = 'Hello! I can show you details about the state of any Polkadot validator. Just send me the validator address.'
 
 STATUS_MESSAGE = '''{}
 ⭐Rank: {}
@@ -18,11 +18,10 @@ STATUS_MESSAGE = '''{}
 🔒Reserved Balance: {}
 '''
 
-KSM_STATS = '''🏦Total issuance: {}
+DOT_STATS = '''🏦Total issuance: {}
 💸Transferable: {}
 🔐Locked: {}
 🔄Era: {}
-📈KSM: 💲{} ({})
 📈DOT: 💲{} ({})
 '''
 
@@ -32,7 +31,7 @@ STATUS = 'ℹ️Status'
 STATS = '📊Stats'
 DONATE = '💚Donate'
 
-DONATE_MESSAGE = '🍺Support me by sending a donation to my KSM address😄'
+DONATE_MESSAGE = '🍺Support me by sending a donation to my DOT address😄'
 
-ERA = 3600
+ERA = 14400
 BLOCK_TIME = 6
