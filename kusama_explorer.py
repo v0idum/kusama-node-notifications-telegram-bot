@@ -111,14 +111,3 @@ async def get_account_info(session: aiohttp.ClientSession, address: str):
     balance_free = format_balance(validator_info['balance_free'], 2)
     balance_reserved = format_balance(validator_info['balance_reserved'], 2)
     return config.STATUS_MESSAGE.format(account, validator_rank, state, balance_total, balance_free, balance_reserved)
-
-
-async def main():
-    session = aiohttp.ClientSession()
-    for i in range(150):
-        # print(await get_validator_rank(session, '14uLDf9HaQAu9FM6qpBNv57CJKjg1rcuMcZz8aAxQ9qvM45v'))
-        print(await get_stats())
-    await session.close()
-
-if __name__ == '__main__':
-    asyncio.run(main())
