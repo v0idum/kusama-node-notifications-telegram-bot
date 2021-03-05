@@ -17,28 +17,34 @@ log = logging.getLogger(__name__)
 
 
 async def get_validator_rank(session: aiohttp.ClientSession, address: str):
-    async with session.get(VALIDATOR_RANK_URL + address) as response:
-        try:
+    try:
+        async with session.get(VALIDATOR_RANK_URL + address) as response:
             details = await response.json()
             return details['rank']
-        except ContentTypeError:
-            return '-'
+    except ContentTypeError:
+        return '-'
+    except Exception as e:
+        log.error(e)
+        return '-'
 
 
 async def get_account_json(session: aiohttp.ClientSession, address: str):
-    async with session.get(API_URL_ROOT + address) as response:
-        try:
+    try:
+        async with session.get(API_URL_ROOT + address) as response:
             account_info = await response.json()
             return account_info['data']['attributes']
-        except KeyError:
-            log.warning(f'Key error during processing address {address}')
-            return
+    except KeyError:
+        log.warning(f'Key error during processing address {address}')
+        return
+    except Exception as e:
+        log.error(e)
+        return
 
 
 async def get_era_process(session: aiohttp.ClientSession = None) -> int:
     close_after_finish = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = aiohttp.ClientSession(trust_env=True)
         close_after_finish = True
 
     async with session.post(ERA_API_URL) as response:
