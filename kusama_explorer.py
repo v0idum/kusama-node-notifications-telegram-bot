@@ -8,7 +8,7 @@ from aiohttp import ContentTypeError
 import config
 from utils import format_balance, get_index
 
-API_URL_ROOT = 'https://explorer-31.polkascan.io/api/v1/kusama/account/'
+API_URL_ROOT = 'https://explorer-32.polkascan.io/api/v1/kusama/account/'
 ERA_API_URL = 'https://kusama.subscan.io/api/scan/metadata'
 TOKEN_PRICE_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=polkadot&vs_currencies=usd&include_24hr_change=true'
 KSM_STATS_URL = 'https://kusama.subscan.io/api/scan/token'
@@ -31,7 +31,7 @@ async def get_validator_rank(session: aiohttp.ClientSession, address: str):
 
 async def get_account_json(session: aiohttp.ClientSession, address: str):
     try:
-        async with session.get(API_URL_ROOT + address) as response:
+        async with session.get(API_URL_ROOT + address, ssl=False) as response:
             account_info = await response.json()
             return account_info['data']['attributes']
     except KeyError:
