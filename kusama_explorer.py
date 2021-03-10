@@ -8,7 +8,7 @@ from aiohttp import ContentTypeError
 import config
 from utils import format_balance, get_index
 
-API_URL_ROOT = 'https://explorer-31.polkascan.io/api/v1/polkadot/account/'
+API_URL_ROOT = 'https://explorer-32.polkascan.io/api/v1/polkadot/account/'
 ERA_API_URL = 'https://polkadot.subscan.io/api/scan/metadata'
 KSM_STATS_URL = 'https://polkadot.subscan.io/api/scan/token'
 VALIDATOR_RANK_URL = 'https://polkadot.w3f.community/candidate/'
@@ -30,7 +30,7 @@ async def get_validator_rank(session: aiohttp.ClientSession, address: str):
 
 async def get_account_json(session: aiohttp.ClientSession, address: str):
     try:
-        async with session.get(API_URL_ROOT + address) as response:
+        async with session.get(API_URL_ROOT + address, ssl=False) as response:
             account_info = await response.json()
             return account_info['data']['attributes']
     except KeyError:
