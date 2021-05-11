@@ -13,9 +13,9 @@ WELCOME_MESSAGE = 'Hello! I can show you details about the state of any Kusama v
 STATUS_MESSAGE = '''{}
 ⭐Rank: {}
 📜Current validator state: {}
-💰Total balance: {}
-💸Free Balance: {}
-🔒Reserved Balance: {}
+💰Balance: {} KSM
+🏦Reserved: {} KSM
+🔒Locked: {} KSM
 '''
 
 KSM_STATS = '''🏦Total issuance: {}
