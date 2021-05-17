@@ -13,9 +13,9 @@ WELCOME_MESSAGE = 'Hello! I can show you details about the state of any Polkadot
 STATUS_MESSAGE = '''{}
 ⭐Rank: {}
 📜Current validator state: {}
-💰Total balance: {}
-💸Free Balance: {}
-🔒Reserved Balance: {}
+💰Balance: {} DOT
+🏦Reserved: {} DOT
+🔒Locked: {} DOT
 '''
 
 DOT_STATS = '''🏦Total issuance: {}

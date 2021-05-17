@@ -8,7 +8,7 @@ from aiohttp import ContentTypeError
 import config
 from utils import format_balance, get_index
 
-API_URL_ROOT = 'https://explorer-32.polkascan.io/api/v1/polkadot/account/'
+ACCOUNT_INFO_URL = 'https://polkadot.subscan.io/api/v2/scan/search'
 ERA_API_URL = 'https://polkadot.subscan.io/api/scan/metadata'
 KSM_STATS_URL = 'https://polkadot.subscan.io/api/scan/token'
 VALIDATOR_RANK_URL = 'https://polkadot.w3f.community/candidate/'
@@ -30,15 +30,11 @@ async def get_validator_rank(session: aiohttp.ClientSession, address: str):
 
 async def get_account_json(session: aiohttp.ClientSession, address: str):
     try:
-        async with session.get(API_URL_ROOT + address, ssl=False) as response:
+        async with session.post(ACCOUNT_INFO_URL, json={'key': address, 'row': 1, 'page': 0}) as response:
             account_info = await response.json()
-            return account_info['data']['attributes']
-    except KeyError:
-        log.warning(f'Key error during processing address {address}')
-        return
+            return account_info['data']['account']
     except Exception as e:
-        log.error(e)
-        return
+        log.error(f'Error during fetching {address} account info', exc_info=e)
 
 
 async def get_era_process(session: aiohttp.ClientSession = None) -> int:
@@ -104,10 +100,12 @@ async def get_account_info(session: aiohttp.ClientSession, address: str):
     if not validator_info:
         return
     account = address[:4] + '...' + address[-4:]
-    if validator_info['has_identity']:
-        account = f"📋Display name: {validator_info['identity_display']}\n💠Address: {account}"
-    state = '🔥Active🔥' if validator_info['is_validator'] else '💤Waiting💤'
-    balance_total = format_balance(validator_info['balance_total'], 2)
-    balance_free = format_balance(validator_info['balance_free'], 2)
-    balance_reserved = format_balance(validator_info['balance_reserved'], 2)
-    return config.STATUS_MESSAGE.format(account, validator_rank, state, balance_total, balance_free, balance_reserved)
+
+    if validator_info['account_display']['display']:
+        account = f"📋Display name: {validator_info['account_display']['display']}\n💠Address: {account}"
+
+    state = '🔥Active🔥' if validator_info['role'] == 'validator' else '💤Waiting💤'
+    balance = validator_info['balance']
+    reserved = format_balance(validator_info['reserved'], 2)
+    locked = validator_info['balance_lock']
+    return config.STATUS_MESSAGE.format(account, validator_rank, state, balance, reserved, locked)
