@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+from json import JSONDecodeError
 
 import aiohttp
 from aiohttp import ContentTypeError
@@ -45,9 +46,13 @@ async def get_era_process(session: aiohttp.ClientSession = None) -> int:
         close_after_finish = True
 
     async with session.post(ERA_API_URL) as response:
-        log.info('In get_era_process', await response.text())
-        metadata = await response.json()
-
+        try:
+            metadata = await response.json()
+        except JSONDecodeError:
+            era_text = await response.text()
+            log.exception(f'Era process {era_text}')
+            last_brace_index = get_index(era_text, '{', 3)
+            metadata = json.loads(era_text[:last_brace_index])
     if close_after_finish:
         await session.close()
 
@@ -63,8 +68,14 @@ async def get_polkadot_price(session: aiohttp.ClientSession) -> tuple:
 
 async def ksm_stats(session) -> str:
     async with session.post(KSM_STATS_URL) as response:
-        text_json = await response.text()
-        return text_json
+        try:
+            stats = await response.json()
+        except JSONDecodeError:
+            stats_text = await response.text()
+            log.exception(f'Ksm stats {stats_text}')
+            last_brace_index = get_index(stats_text, '{', 5)
+            stats = json.loads(stats_text[:last_brace_index])
+        return stats
 
 
 async def get_stats() -> str:
@@ -77,15 +88,9 @@ async def get_stats() -> str:
     )
     await session.close()
 
-    text_json = results[0]
+    token_stats = results[0]
 
-    if text_json.count('{') == 4:
-        text_json = json.loads(text_json)
-    else:
-        last_brace_index = get_index(text_json, '{', 5)
-        text_json = json.loads(text_json[:last_brace_index])
-
-    ksm_info = text_json['data']['detail']['KSM']
+    ksm_info = token_stats['data']['detail']['KSM']
 
     total = format_balance(ksm_info['total_issuance'])
     available = format_balance(ksm_info['available_balance'])
@@ -122,3 +127,15 @@ async def get_account_info(session: aiohttp.ClientSession, address: str):
     reserved = format_balance(validator_info['reserved'], 2)
     locked = validator_info['balance_lock']
     return config.STATUS_MESSAGE.format(account, validator_rank, state, balance, reserved, locked)
+
+
+async def main():
+    session = aiohttp.ClientSession(trust_env=True)
+    for i in range(100):
+        print(await get_era_process(session))
+
+    await session.close()
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
