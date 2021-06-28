@@ -45,6 +45,7 @@ async def get_era_process(session: aiohttp.ClientSession = None) -> int:
         close_after_finish = True
 
     async with session.post(ERA_API_URL) as response:
+        log.info('In get_era_process', await response.text())
         metadata = await response.json()
 
     if close_after_finish:
