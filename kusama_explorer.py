@@ -127,15 +127,3 @@ async def get_account_info(session: aiohttp.ClientSession, address: str):
     reserved = format_balance(validator_info['reserved'], 2)
     locked = validator_info['balance_lock']
     return config.STATUS_MESSAGE.format(account, validator_rank, state, balance, reserved, locked)
-
-
-async def main():
-    session = aiohttp.ClientSession(trust_env=True)
-    for i in range(100):
-        print(await get_era_process(session))
-
-    await session.close()
-
-
-if __name__ == '__main__':
-    asyncio.run(main())
