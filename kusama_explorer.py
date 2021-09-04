@@ -8,9 +8,9 @@ from aiohttp import ContentTypeError
 import config
 from utils import format_balance, get_index
 
-ACCOUNT_INFO_URL = 'https://polkadot.subscan.io/api/v2/scan/search'
-ERA_API_URL = 'https://polkadot.subscan.io/api/scan/metadata'
-KSM_STATS_URL = 'https://polkadot.subscan.io/api/scan/token'
+ACCOUNT_INFO_URL = 'https://polkadot.api.subscan.io/api/v2/scan/search'
+ERA_API_URL = 'https://polkadot.api.subscan.io/api/scan/metadata'
+KSM_STATS_URL = 'https://polkadot.api.subscan.io/api/scan/token'
 VALIDATOR_RANK_URL = 'https://polkadot.w3f.community/candidate/'
 
 log = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ async def get_validator_rank(session: aiohttp.ClientSession, address: str):
 
 async def get_account_json(session: aiohttp.ClientSession, address: str):
     try:
-        async with session.post(ACCOUNT_INFO_URL, json={'key': address, 'row': 1, 'page': 0}) as response:
+        async with session.post(ACCOUNT_INFO_URL, headers={'X-API-Key': config.API_KEY}, json={'key': address, 'row': 1, 'page': 0}) as response:
             account_info = await response.json()
             return account_info['data']['account']
     except Exception as e:
@@ -43,7 +43,7 @@ async def get_era_process(session: aiohttp.ClientSession = None) -> int:
         session = aiohttp.ClientSession(trust_env=True)
         close_after_finish = True
 
-    async with session.post(ERA_API_URL) as response:
+    async with session.post(ERA_API_URL, headers={'X-API-Key': config.API_KEY}) as response:
         metadata = await response.json()
 
     if close_after_finish:
@@ -53,7 +53,7 @@ async def get_era_process(session: aiohttp.ClientSession = None) -> int:
 
 
 async def polkadot_stats(session) -> str:
-    async with session.post(KSM_STATS_URL) as response:
+    async with session.post(KSM_STATS_URL, headers={'X-API-Key': config.API_KEY}) as response:
         text_json = await response.text()
         return text_json
 
