@@ -7,6 +7,7 @@ load_dotenv()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 ADMINS = os.getenv('ADMINS').split(' ')
 DONATE_ADDRESS = os.getenv('DONATE_ADDRESS')
+API_KEY = os.getenv('API_KEY')
 
 WELCOME_MESSAGE = 'Hello! I can show you details about the state of any Kusama validator. Just send me the validator address.'
 

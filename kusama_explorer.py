@@ -9,10 +9,10 @@ from aiohttp import ContentTypeError
 import config
 from utils import format_balance, get_index
 
-ACCOUNT_INFO_URL = 'https://kusama.subscan.io/api/v2/scan/search'
-ERA_API_URL = 'https://kusama.subscan.io/api/scan/metadata'
+ACCOUNT_INFO_URL = 'https://kusama.api.subscan.io/api/v2/scan/search'
+ERA_API_URL = 'https://kusama.api.subscan.io/api/scan/metadata'
 TOKEN_PRICE_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=polkadot&vs_currencies=usd&include_24hr_change=true'
-KSM_STATS_URL = 'https://kusama.subscan.io/api/scan/token'
+KSM_STATS_URL = 'https://kusama.api.subscan.io/api/scan/token'
 VALIDATOR_RANK_URL = 'https://kusama.w3f.community/candidate/'
 
 log = logging.getLogger(__name__)
@@ -32,8 +32,9 @@ async def get_validator_rank(session: aiohttp.ClientSession, address: str):
 
 async def get_account_json(session: aiohttp.ClientSession, address: str):
     try:
-        async with session.post(ACCOUNT_INFO_URL, json={'key': address, 'row': 1, 'page': 0}) as response:
+        async with session.post(ACCOUNT_INFO_URL, headers={'X-API-Key': config.API_KEY}, json={'key': address, 'row': 1, 'page': 0}) as response:
             account_info = await response.json()
+            print(account_info)
             return account_info['data']['account']
     except Exception as e:
         log.error(f'Error during fetching {address} account info', exc_info=e)
@@ -45,7 +46,7 @@ async def get_era_process(session: aiohttp.ClientSession = None) -> int:
         session = aiohttp.ClientSession(trust_env=True)
         close_after_finish = True
 
-    async with session.post(ERA_API_URL) as response:
+    async with session.post(ERA_API_URL, headers={'X-API-Key': config.API_KEY}) as response:
         try:
             metadata = await response.json()
         except JSONDecodeError:
@@ -67,7 +68,7 @@ async def get_polkadot_price(session: aiohttp.ClientSession) -> tuple:
 
 
 async def ksm_stats(session) -> str:
-    async with session.post(KSM_STATS_URL) as response:
+    async with session.post(KSM_STATS_URL, headers={'X-API-Key': config.API_KEY}) as response:
         try:
             stats = await response.json()
         except JSONDecodeError:
