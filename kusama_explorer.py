@@ -32,7 +32,8 @@ async def get_validator_rank(session: aiohttp.ClientSession, address: str):
 
 async def get_account_json(session: aiohttp.ClientSession, address: str):
     try:
-        async with session.post(ACCOUNT_INFO_URL, headers={'X-API-Key': config.API_KEY}, json={'key': address, 'row': 1, 'page': 0}) as response:
+        async with session.post(ACCOUNT_INFO_URL, headers={'X-API-Key': config.API_KEY},
+                                json={'key': address, 'row': 1, 'page': 0}) as response:
             account_info = await response.json()
             print(account_info)
             return account_info['data']['account']
@@ -94,8 +95,8 @@ async def get_stats() -> str:
     ksm_info = token_stats['data']['detail']['KSM']
 
     total = format_balance(ksm_info['total_issuance'])
-    available = format_balance(ksm_info['available_balance'])
-    locked = format_balance(ksm_info['locked_balance'])
+    locked = format_balance(ksm_info['bonded_locked_balance'])
+    available = format_balance(int(ksm_info['total_issuance']) - int(ksm_info['bonded_locked_balance']))
 
     era = f'{results[1]}/{config.ERA}'
 
